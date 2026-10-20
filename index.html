@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Clima en Tiempo Real</title>
+  <meta name="description" content="Clima actual, pronóstico por hora y de 7 días usando Open-Meteo.">
+  <meta name="theme-color" content="#0f172a">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <form id="search-form" class="search" autocomplete="off" role="search">
+      <input id="search-input" type="search" placeholder="Buscar ciudad…" aria-label="Buscar ciudad">
+      <ul id="search-results" class="results" hidden></ul>
+    </form>
+    <button id="btn-locate" class="icon-btn" title="Usar mi ubicación" aria-label="Usar mi ubicación">📍</button>
+    <button id="btn-units" class="icon-btn" title="Cambiar unidades" aria-label="Cambiar unidades">°C</button>
+    <button id="btn-fav" class="icon-btn" title="Guardar en favoritos" aria-label="Guardar en favoritos">☆</button>
+  </header>
+
+  <nav id="favorites" class="favorites" aria-label="Favoritos"></nav>
+
+  <main id="app">
+    <section id="status" class="status">Cargando…</section>
+
+    <section id="current" class="card current" hidden>
+      <div class="place">
+        <h1 id="place-name">—</h1>
+        <p id="updated" class="muted"></p>
+      </div>
+      <div class="now">
+        <span id="now-icon" class="big-icon">☀️</span>
+        <span id="now-temp" class="big-temp">--°</span>
+      </div>
+      <p id="now-desc" class="desc">—</p>
+      <p id="now-range" class="muted"></p>
+      <dl class="grid">
+        <div><dt>Sensación</dt><dd id="d-feels">--</dd></div>
+        <div><dt>Humedad</dt><dd id="d-hum">--</dd></div>
+        <div><dt>Viento</dt><dd id="d-wind">--</dd></div>
+        <div><dt>Ráfagas</dt><dd id="d-gust">--</dd></div>
+        <div><dt>Presión</dt><dd id="d-press">--</dd></div>
+        <div><dt>Nubosidad</dt><dd id="d-cloud">--</dd></div>
+        <div><dt>Precipitación</dt><dd id="d-precip">--</dd></div>
+        <div><dt>Índice UV</dt><dd id="d-uv">--</dd></div>
+        <div><dt>Amanecer</dt><dd id="d-sunrise">--</dd></div>
+        <div><dt>Atardecer</dt><dd id="d-sunset">--</dd></div>
+        <div><dt>Calidad del aire</dt><dd id="d-aqi">--</dd></div>
+        <div><dt>PM2.5</dt><dd id="d-pm25">--</dd></div>
+      </dl>
+    </section>
+
+    <section class="card" id="hourly-card" hidden>
+      <h2>Próximas 24 horas</h2>
+      <div id="hourly" class="hourly"></div>
+    </section>
+
+    <section class="card" id="daily-card" hidden>
+      <h2>Próximos 7 días</h2>
+      <ul id="daily" class="daily"></ul>
+    </section>
+  </main>
+
+  <footer class="footer muted">
+    Datos: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> (CC BY 4.0) ·
+    Se actualiza cada 10 min
+  </footer>
+
+  <script src="app.js" type="module"></script>
+</body>
+</html>
