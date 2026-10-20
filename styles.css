@@ -1,9 +1,11 @@
+/* Tema oscuro (por defecto). El tema activo lo fija app.js en <html data-theme>. */
 :root {
   --bg: #0b1730;
   --bg-2: #13284d;
-  --top: #0e1424;
+  --top: rgba(14, 20, 36, 0.92);
   --card: #17233d;
   --card-2: #1f2e4d;
+  --hover: #2a3c60;
   --border: rgba(255, 255, 255, 0.08);
   --text: #f4f7fb;
   --muted: #a3b0c6;
@@ -11,8 +13,71 @@
   --accent: #ffd34e;
   --accent-ink: #1a1a1a;
   --link: #7cc4ff;
+  --track: #2f3f62;
+  --ring: #ffffff;
+  --grid: rgba(255, 255, 255, 0.07);
+  --cross: rgba(255, 255, 255, 0.55);
+  --sun-line: rgba(255, 211, 78, 0.45);
+  --sun: #facc15;
+  --feels: #f87171;
+  --tip-bg: #0e1424;
+  --shadow: rgba(0, 0, 0, 0.45);
+  --map-bg: #0e1424;
+  --overlay: rgba(14, 20, 36, 0.85);
+  --strip: rgba(56, 189, 248, 0.16);
+  --hatch: rgba(255, 255, 255, 0.08);
+  --select-bg: rgba(124, 196, 255, 0.16);
+  /* Una serie por gráfico; colores validados con contraste >= 3:1 sobre --card */
+  --m-general: #fb923c;
+  --m-precip: #38bdf8;
+  --m-wind: #a78bfa;
+  --m-air: #4ade80;
+  --m-humidity: #60a5fa;
+  --m-clouds: #94a3b8;
+  --m-pressure: #f472b6;
+  --m-uv: #facc15;
   --radius: 12px;
   color-scheme: dark;
+}
+
+/* Tema claro: pasos propios de las mismas tonalidades, validados sobre blanco */
+:root[data-theme="light"] {
+  --bg: #eef2f8;
+  --bg-2: #d9e6f7;
+  --top: rgba(255, 255, 255, 0.92);
+  --card: #ffffff;
+  --card-2: #f3f6fb;
+  --hover: #e4ebf5;
+  --border: rgba(15, 23, 42, 0.10);
+  --text: #0f172a;
+  --muted: #526079;
+  --faint: #8a96ab;
+  --accent: #ffd34e;
+  --accent-ink: #1a1a1a;
+  --link: #0b63c5;
+  --track: #dde4ef;
+  --ring: #ffffff;
+  --grid: rgba(15, 23, 42, 0.08);
+  --cross: rgba(15, 23, 42, 0.45);
+  --sun-line: rgba(202, 138, 4, 0.55);
+  --sun: #f59e0b;
+  --feels: #dc2626;
+  --tip-bg: #ffffff;
+  --shadow: rgba(15, 23, 42, 0.18);
+  --map-bg: #e5e9f0;
+  --overlay: rgba(255, 255, 255, 0.9);
+  --strip: rgba(2, 132, 199, 0.12);
+  --hatch: rgba(15, 23, 42, 0.08);
+  --select-bg: rgba(11, 99, 197, 0.10);
+  --m-general: #ea580c;
+  --m-precip: #0284c7;
+  --m-wind: #7c3aed;
+  --m-air: #16a34a;
+  --m-humidity: #2563eb;
+  --m-clouds: #64748b;
+  --m-pressure: #db2777;
+  --m-uv: #a16207;
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; }
@@ -24,6 +89,7 @@ body {
   color: var(--text);
   background: linear-gradient(180deg, var(--bg-2) 0, var(--bg) 420px) var(--bg);
   font-size: 14px;
+  transition: background-color 0.3s, color 0.3s;
 }
 
 a { color: var(--link); }
@@ -37,7 +103,7 @@ button { font: inherit; color: inherit; }
   position: sticky;
   top: 0;
   z-index: 1000;
-  background: rgba(14, 20, 36, 0.92);
+  background: var(--top);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
   padding-top: env(safe-area-inset-top);
@@ -101,13 +167,13 @@ button { font: inherit; color: inherit; }
   background: var(--card-2);
   border: 1px solid var(--border);
   border-radius: 10px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 12px 32px var(--shadow);
   max-height: 340px;
   overflow-y: auto;
 }
 
 .results li { padding: 9px 12px; border-radius: 6px; cursor: pointer; }
-.results li:hover, .results li.active { background: rgba(124, 196, 255, 0.16); }
+.results li:hover, .results li.active { background: var(--select-bg); }
 .results small { color: var(--muted); }
 
 .quick {
@@ -141,6 +207,23 @@ button { font: inherit; color: inherit; }
 .quick-chip b { font-weight: 600; }
 
 .top-actions { display: flex; gap: 8px; flex: none; }
+
+.theme-select {
+  height: 38px;
+  padding: 0 28px 0 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E") no-repeat right 10px center;
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  appearance: none;
+}
+
+.theme-select:hover { background-color: var(--hover); }
+.theme-select:focus-visible { outline: 2px solid var(--link); outline-offset: 1px; }
+.theme-select option { background: var(--card); color: var(--text); }
 
 .ghost-btn {
   height: 38px;
@@ -226,7 +309,7 @@ main {
 
 /* Mapa */
 .map-card { position: relative; overflow: hidden; min-height: 300px; display: flex; flex-direction: column; }
-.map { flex: 1; min-height: 260px; background: #0e1424; }
+.map { flex: 1; min-height: 260px; background: var(--map-bg); }
 .map-bar {
   display: flex;
   align-items: center;
@@ -235,12 +318,12 @@ main {
   border-top: 1px solid var(--border);
 }
 
-.leaflet-container { background: #0e1424; font: inherit; }
+.leaflet-container { background: var(--map-bg); font: inherit; }
 /* Mapa base de OSM oscurecido para el tema nocturno */
-.base-tiles { filter: invert(1) hue-rotate(200deg) brightness(0.85) contrast(0.9) saturate(0.6); }
-.leaflet-control-attribution { font-size: 10px; background: rgba(14, 20, 36, 0.7) !important; color: var(--muted); }
+:root[data-theme="dark"] .base-tiles { filter: invert(1) hue-rotate(200deg) brightness(0.85) contrast(0.9) saturate(0.6); }
+.leaflet-control-attribution { font-size: 10px; background: var(--overlay) !important; color: var(--muted); }
 .leaflet-control-attribution a { color: var(--link); }
-.leaflet-bar a { background: var(--card-2); color: var(--text); border-color: var(--border); }
+.leaflet-bar a { background: var(--card); color: var(--text); border-color: var(--border); }
 .leaflet-bar a:hover { background: var(--card); color: var(--text); }
 
 .map-pin {
@@ -249,8 +332,9 @@ main {
   gap: 2px;
   padding: 2px 8px 2px 2px;
   border-radius: 999px;
-  background: rgba(14, 20, 36, 0.85);
+  background: var(--overlay);
   border: 1px solid var(--border);
+  box-shadow: 0 2px 8px var(--shadow);
   color: var(--text);
   font-weight: 600;
   white-space: nowrap;
@@ -287,7 +371,7 @@ main {
   white-space: nowrap;
 }
 
-.pill:hover { background: #2a3c60; }
+.pill:hover { background: var(--hover); }
 .pill[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
 .small-pill { height: 26px; padding: 0 10px; font-size: 12px; }
 
@@ -335,7 +419,7 @@ main {
 [hidden] { display: none !important; }
 .switch { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); cursor: pointer; user-select: none; }
 .switch input { position: absolute; opacity: 0; pointer-events: none; }
-.switch .track { width: 34px; height: 18px; border-radius: 999px; background: #3a4a6b; position: relative; transition: background 0.2s; }
+.switch .track { width: 34px; height: 18px; border-radius: 999px; background: var(--track); position: relative; transition: background 0.2s; }
 .switch .thumb { position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: transform 0.2s; }
 .switch input:checked + .track { background: var(--link); }
 .switch input:checked + .track .thumb { transform: translateX(16px); }
@@ -368,13 +452,13 @@ main {
 .chart-col .c-arrow { display: inline-block; font-size: 18px; color: var(--muted); margin: 6px 0; height: 18px; }
 
 .chart svg { display: block; width: 100%; height: 210px; overflow: visible; }
-.chart .grid-line { stroke: rgba(255, 255, 255, 0.07); stroke-width: 1; }
+.chart .grid-line { stroke: var(--grid); stroke-width: 1; }
 .chart .axis-label { fill: var(--muted); font-size: 11px; }
 .chart .line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
 .chart .bar { rx: 3; }
-.chart .sun-line { stroke: rgba(255, 211, 78, 0.45); stroke-width: 1; stroke-dasharray: 3 4; }
+.chart .sun-line { stroke: var(--sun-line); stroke-width: 1; stroke-dasharray: 3 4; }
 .chart .sun-label { fill: var(--text); font-size: 11px; }
-.chart .crosshair { stroke: rgba(255, 255, 255, 0.55); stroke-width: 1; stroke-dasharray: 3 3; }
+.chart .crosshair { stroke: var(--cross); stroke-width: 1; stroke-dasharray: 3 3; }
 .chart .dot { stroke: var(--card); stroke-width: 2; }
 .chart .empty { fill: var(--muted); font-size: 13px; }
 
@@ -391,14 +475,14 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(56, 189, 248, 0.16);
+  background: var(--strip);
   color: var(--text);
   white-space: nowrap;
   overflow: hidden;
 }
 
 .strip-cell.none {
-  background: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0 2px, transparent 2px 6px);
+  background: repeating-linear-gradient(135deg, var(--hatch) 0 2px, transparent 2px 6px);
   color: var(--muted);
 }
 
@@ -409,9 +493,9 @@ main {
   pointer-events: none;
   padding: 8px 10px;
   border-radius: 8px;
-  background: #0e1424;
+  background: var(--tip-bg);
   border: 1px solid var(--border);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 24px var(--shadow);
   font-size: 12px;
   line-height: 1.4;
   white-space: nowrap;
@@ -469,12 +553,12 @@ main {
 .viz .kv span { display: block; color: var(--muted); font-size: 11px; }
 
 .hum-bars { display: flex; gap: 5px; align-items: flex-end; height: 100px; }
-.hum-bars i { display: block; width: 9px; border-radius: 5px; background: #3a4a6b; position: relative; height: 100%; overflow: hidden; }
-.hum-bars i b { position: absolute; left: 0; right: 0; bottom: 0; background: #60a5fa; border-radius: 5px; }
+.hum-bars i { display: block; width: 9px; border-radius: 5px; background: var(--track); position: relative; height: 100%; overflow: hidden; }
+.hum-bars i b { position: absolute; left: 0; right: 0; bottom: 0; background: var(--m-humidity); border-radius: 5px; }
 
 .vis-bars { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.vis-bars i { display: block; height: 8px; border-radius: 4px; background: #4ade80; }
-.vis-bars i.off { background: #3a4a6b; }
+.vis-bars i { display: block; height: 8px; border-radius: 4px; background: var(--m-air); }
+.vis-bars i.off { background: var(--track); }
 
 .moon-img { width: 96px; height: 96px; }
 
@@ -502,6 +586,9 @@ main {
 }
 
 @media (max-width: 560px) {
+  .search { min-width: 0; }
+  .topbar-inner { gap: 6px; }
+  .theme-select { padding: 0 22px 0 8px; background-position: right 7px center; max-width: 118px; }
   .now-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 12px; }
   .now-temp { font-size: 54px; }
   .now-icon { width: 80px; height: 80px; }
@@ -510,3 +597,6 @@ main {
   .detail { min-height: 0; }
   .days { grid-auto-columns: 112px; }
 }
+
+/* Las nubes de los íconos son casi blancas: en el tema claro llevan una sombra para no perderse */
+:root[data-theme="light"] img[src*="icons/wx/"] { filter: drop-shadow(0 1px 1.5px rgba(15, 23, 42, 0.35)); }

@@ -13,6 +13,15 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
   <link rel="stylesheet" href="styles.css">
+  <script>
+    // Aplica el tema antes del primer pintado para evitar un parpadeo.
+    (function () {
+      var pref = 'auto';
+      try { pref = JSON.parse(localStorage.getItem('theme')) || 'auto'; } catch (e) {}
+      var dark = pref === 'dark' || (pref === 'auto' && !(window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches));
+      document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+    })();
+  </script>
 </head>
 <body>
   <header class="topbar">
@@ -31,6 +40,11 @@
         <button id="btn-locate" class="ghost-btn" title="Usar mi ubicación" aria-label="Usar mi ubicación">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="7"/></svg>
         </button>
+        <select id="theme-select" class="theme-select" aria-label="Tema" title="Tema">
+          <option value="auto">Tema: Auto</option>
+          <option value="light">Tema: Claro</option>
+          <option value="dark">Tema: Oscuro</option>
+        </select>
         <button id="btn-units" class="ghost-btn units" title="Cambiar unidades">°C</button>
       </div>
     </div>

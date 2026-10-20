@@ -66,6 +66,7 @@ const state = {
   units: store.get('units', 'metric'),
   favorites: store.get('favorites', DEFAULT_FAVORITES),
   metric: store.get('metric', 'general'),
+  theme: store.get('theme', 'auto'), // auto | light | dark
   feels: false,
   day: null, // índice del día seleccionado en daily
   data: null, // { p, w, air }
@@ -283,46 +284,46 @@ function renderDays(w) {
 // Cada métrica es una sola serie con un solo eje (nunca dos escalas a la vez).
 const METRICS = {
   general: {
-    tab: 'Información general', color: '#fb923c', kind: 'area',
+    tab: 'Información general', color: 'var(--m-general)', kind: 'area',
     get: (h, i) => (state.feels ? h.apparent_temperature[i] : h.temperature_2m[i]),
     fmt: (v) => `${round(v)}°`, legend: () => (state.feels ? 'Sensación térmica' : 'Temperatura'),
   },
   precip: {
-    tab: 'Precipitación', color: '#38bdf8', kind: 'bar', domain: [0, 100],
+    tab: 'Precipitación', color: 'var(--m-precip)', kind: 'bar', domain: [0, 100],
     get: (h, i) => h.precipitation_probability[i],
     fmt: (v) => `${round(v)}%`, legend: () => 'Probabilidad de precipitación',
     extra: (h, i) => `${h.precipitation[i]} ${precipUnit()}`,
   },
   wind: {
-    tab: 'Viento', color: '#a78bfa', kind: 'area', min: 0,
+    tab: 'Viento', color: 'var(--m-wind)', kind: 'area', min: 0,
     get: (h, i) => h.wind_speed_10m[i],
     fmt: (v) => `${round(v)}`, unit: () => ` ${windUnit()}`, legend: () => `Velocidad del viento (${windUnit()})`,
     extra: (h, i) => `Ráfagas ${round(h.wind_gusts_10m[i])} ${windUnit()} · desde ${windDir(h.wind_direction_10m[i])}`,
   },
   air: {
-    tab: 'Calidad del aire', color: '#4ade80', kind: 'area', min: 0,
+    tab: 'Calidad del aire', color: 'var(--m-air)', kind: 'area', min: 0,
     get: (h, i) => state.airByTime?.get(h.time[i]) ?? null,
     fmt: (v) => `${round(v)}`, legend: () => 'Índice europeo de calidad del aire (EAQI)',
     extra: (h, i) => aqiInfo(state.airByTime?.get(h.time[i])).label,
   },
   humidity: {
-    tab: 'Humedad', color: '#60a5fa', kind: 'area', domain: [0, 100],
+    tab: 'Humedad', color: 'var(--m-humidity)', kind: 'area', domain: [0, 100],
     get: (h, i) => h.relative_humidity_2m[i],
     fmt: (v) => `${round(v)}%`, legend: () => 'Humedad relativa',
     extra: (h, i) => `Punto de rocío ${round(h.dew_point_2m[i])}°`,
   },
   clouds: {
-    tab: 'Nubosidad', color: '#94a3b8', kind: 'area', domain: [0, 100],
+    tab: 'Nubosidad', color: 'var(--m-clouds)', kind: 'area', domain: [0, 100],
     get: (h, i) => h.cloud_cover[i],
     fmt: (v) => `${round(v)}%`, legend: () => 'Cobertura de nubes',
   },
   pressure: {
-    tab: 'Presión', color: '#f472b6', kind: 'line',
+    tab: 'Presión', color: 'var(--m-pressure)', kind: 'line',
     get: (h, i) => h.pressure_msl[i],
     fmt: (v) => `${round(v)}`, unit: () => ' hPa', legend: () => 'Presión al nivel del mar (hPa)',
   },
   uv: {
-    tab: 'Ultravioleta', color: '#facc15', kind: 'bar', min: 0,
+    tab: 'Ultravioleta', color: 'var(--m-uv)', kind: 'bar', min: 0,
     get: (h, i) => h.uv_index[i],
     fmt: (v) => (v == null ? '--' : `${Math.round(v)}`), legend: () => 'Índice UV',
     extra: (h, i) => uvInfo(h.uv_index[i]).label,
@@ -426,7 +427,7 @@ function renderChart() {
   let marks = '';
   if (m.kind === 'bar') {
     const bw = Math.max(3, slot - 4);
-    marks = vals.map((v, k) => (v == null ? '' : `<rect class="bar" x="${x(k) - bw / 2}" y="${y(v)}" width="${bw}" height="${Math.max(0, base - y(v))}" fill="${m.color}" rx="3"/>`)).join('');
+    marks = vals.map((v, k) => (v == null ? '' : `<rect class="bar" x="${x(k) - bw / 2}" y="${y(v)}" width="${bw}" height="${Math.max(0, base - y(v))}" style="fill:${m.color}" rx="3"/>`)).join('');
   } else {
     // Línea con huecos donde no hay datos
     let d = '';
@@ -440,7 +441,7 @@ function renderChart() {
     const last = vals.length - 1 - [...vals].reverse().findIndex((v) => v != null);
     const area = m.kind === 'area' && vals.every((v) => v != null)
       ? `<path d="${d}L${x(last)},${base}L${x(first)},${base}Z" fill="url(#g-${state.metric})"/>` : '';
-    marks = `${area}<path class="line" d="${d}" stroke="${m.color}"/>`;
+    marks = `${area}<path class="line" d="${d}" style="stroke:${m.color}"/>`;
   }
 
   // Amanecer y atardecer dentro de la ventana
@@ -460,15 +461,15 @@ function renderChart() {
   svg.setAttribute('aria-label', `${m.legend()}: de ${m.fmt(Math.min(...known))} a ${m.fmt(Math.max(...known))}`);
   svg.innerHTML = `
     <defs><linearGradient id="g-${state.metric}" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="${m.color}" stop-opacity="0.35"/>
-      <stop offset="1" stop-color="${m.color}" stop-opacity="0.02"/>
+      <stop offset="0" style="stop-color:${m.color}" stop-opacity="0.35"/>
+      <stop offset="1" style="stop-color:${m.color}" stop-opacity="0.02"/>
     </linearGradient></defs>
     ${ticks.map((t) => `<line class="grid-line" x1="${pad.left}" x2="${W - pad.right}" y1="${y(t)}" y2="${y(t)}"/>
       <text class="axis-label" x="${pad.left - 8}" y="${y(t) + 4}" text-anchor="end">${t}${state.metric === 'general' ? '°' : ''}</text>`).join('')}
     ${sun}
     ${marks}
     <line class="crosshair" id="chart-cross" y1="${pad.top}" y2="${base}" visibility="hidden"/>
-    <circle class="dot" id="chart-dot" r="5" fill="${m.color}" visibility="hidden"/>
+    <circle class="dot" id="chart-dot" r="5" style="fill:${m.color}" visibility="hidden"/>
     <rect id="chart-hit" x="${pad.left}" y="0" width="${iw}" height="${H}" fill="transparent"/>`;
 
   // Franja inferior: probabilidad de precipitación por bloque (solo en información general)
@@ -531,13 +532,13 @@ function renderChart() {
 // ---------- Detalles del tiempo ----------
 
 function aqiInfo(v) {
-  if (v == null) return { label: 'Sin datos', color: '#6b7a94' };
-  if (v <= 20) return { label: 'Buena', color: '#4ade80' };
-  if (v <= 40) return { label: 'Aceptable', color: '#a3e635' };
-  if (v <= 60) return { label: 'Moderada', color: '#facc15' };
-  if (v <= 80) return { label: 'Mala', color: '#fb923c' };
-  if (v <= 100) return { label: 'Muy mala', color: '#f87171' };
-  return { label: 'Extremadamente mala', color: '#c084fc' };
+  if (v == null) return { label: 'Sin datos' };
+  if (v <= 20) return { label: 'Buena' };
+  if (v <= 40) return { label: 'Aceptable' };
+  if (v <= 60) return { label: 'Moderada' };
+  if (v <= 80) return { label: 'Mala' };
+  if (v <= 100) return { label: 'Muy mala' };
+  return { label: 'Extremadamente mala' };
 }
 
 function uvInfo(v) {
@@ -587,12 +588,12 @@ function spark(values, nowK, color, id) {
   const past = values.slice(0, nowK + 1).map((v, k) => `${k ? 'L' : 'M'}${x(k).toFixed(1)},${y(v ?? lo).toFixed(1)}`).join('');
   return `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true">
     <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="${color}" stop-opacity="0.3"/><stop offset="1" stop-color="${color}" stop-opacity="0"/>
+      <stop offset="0" style="stop-color:${color}" stop-opacity="0.3"/><stop offset="1" style="stop-color:${color}" stop-opacity="0"/>
     </linearGradient></defs>
     <path d="${d}L${x(values.length - 1)},${H}L${x(0)},${H}Z" fill="url(#${id})"/>
-    <path d="${d}" fill="none" stroke="#3a4a6b" stroke-width="5" stroke-linecap="round"/>
-    <path d="${past}" fill="none" stroke="${color}" stroke-width="5" stroke-linecap="round"/>
-    <circle cx="${x(nowK)}" cy="${y(values[nowK] ?? lo)}" r="8" fill="${color}" stroke="#fff" stroke-width="3"/>
+    <path d="${d}" fill="none" style="stroke:var(--track)" stroke-width="5" stroke-linecap="round"/>
+    <path d="${past}" fill="none" style="stroke:${color}" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="${x(nowK)}" cy="${y(values[nowK] ?? lo)}" r="8" style="fill:${color};stroke:var(--ring)" stroke-width="3"/>
   </svg>`;
 }
 
@@ -608,9 +609,9 @@ function gauge(value, max, colors, id) {
   const stops = colors.map((c, n) => `<stop offset="${n / (colors.length - 1)}" stop-color="${c}"/>`).join('');
   return `<svg viewBox="0 0 140 130" aria-hidden="true" style="max-height:130px">
     <defs><linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="${70 - R}" y1="0" x2="${70 + R}" y2="0">${stops}</linearGradient></defs>
-    <path d="${arc}" fill="none" stroke="#2a3a5c" stroke-width="10" stroke-linecap="round"/>
+    <path d="${arc}" fill="none" style="stroke:var(--track)" stroke-width="10" stroke-linecap="round"/>
     <path d="${arc}" fill="none" stroke="url(#${id})" stroke-width="10" stroke-linecap="round" opacity="${value == null ? 0.2 : 1}"/>
-    ${value == null ? '' : `<circle cx="${mx}" cy="${my}" r="8" fill="#17233d" stroke="#fff" stroke-width="3"/>`}
+    ${value == null ? '' : `<circle cx="${mx}" cy="${my}" r="8" style="fill:var(--card);stroke:var(--text)" stroke-width="3"/>`}
   </svg>`;
 }
 
@@ -618,9 +619,9 @@ function ring(frac, color) {
   const R = 50;
   const C = 2 * Math.PI * R;
   return `<svg viewBox="0 0 120 120" aria-hidden="true" style="max-height:120px">
-    <circle cx="60" cy="60" r="${R}" fill="#2a3a5c" opacity="0.55"/>
-    <circle cx="60" cy="60" r="${R}" fill="none" stroke="#2a3a5c" stroke-width="8"/>
-    <circle cx="60" cy="60" r="${R}" fill="none" stroke="${color}" stroke-width="8" stroke-linecap="round"
+    <circle cx="60" cy="60" r="${R}" style="fill:var(--track)" opacity="0.45"/>
+    <circle cx="60" cy="60" r="${R}" fill="none" style="stroke:var(--track)" stroke-width="8"/>
+    <circle cx="60" cy="60" r="${R}" fill="none" style="stroke:${color}" stroke-width="8" stroke-linecap="round"
       stroke-dasharray="${C * Math.max(0, Math.min(1, frac))} ${C}" transform="rotate(-90 60 60)"/>
   </svg>`;
 }
@@ -660,7 +661,7 @@ function renderDetails(p, w, air) {
       ? `Subirá hasta un pico de ${round(h.temperature_2m[iMax])}${tu} a las ${at(iMax)}. Mínima de ${round(h.temperature_2m[iMin])}${tu} a las ${at(iMin)}.`
       : `Bajará hasta ${round(h.temperature_2m[iMin])}${tu} a las ${at(iMin)}. Máxima de ${round(h.temperature_2m[iMax])}${tu} a las ${at(iMax)}.`;
     cards.push(card('Temperatura',
-      `${spark(vals, win.indexOf(ni), '#fb923c', 'sp-t')}<div class="center" style="align-items:flex-end;justify-content:flex-end;padding:0 6px 2px 0"><span class="big-num">${round(c.temperature_2m)}°</span></div>`,
+      `${spark(vals, win.indexOf(ni), 'var(--m-general)', 'sp-t')}<div class="center" style="align-items:flex-end;justify-content:flex-end;padding:0 6px 2px 0"><span class="big-num">${round(c.temperature_2m)}°</span></div>`,
       tr, text));
   }
 
@@ -674,7 +675,7 @@ function renderDetails(p, w, air) {
       : 'La sensación térmica es prácticamente igual a la temperatura real.';
     const win = range(Math.max(0, ni - 6), 24, h.time.length);
     cards.push(card('Sensación térmica',
-      `<div style="width:100%">${spark(win.map((i) => h.apparent_temperature[i]), win.indexOf(ni), '#f87171', 'sp-f')}
+      `<div style="width:100%">${spark(win.map((i) => h.apparent_temperature[i]), win.indexOf(ni), 'var(--feels)', 'sp-f')}
         <div class="row" style="justify-content:space-around;margin-top:4px">
           <div class="kv"><span>Sensación</span><b class="big-num">${round(c.apparent_temperature)}°</b></div>
           <div class="kv"><span>Temperatura</span><b class="big-num">${round(c.temperature_2m)}°</b></div>
@@ -689,7 +690,7 @@ function renderDetails(p, w, air) {
     const avg = next.slice(1, 7).reduce((s, i) => s + h.cloud_cover[i], 0) / 6;
     const tr = avg > cc + 10 ? 'aumente' : avg < cc - 10 ? 'disminuya' : 'se mantenga';
     cards.push(card('Nubosidad',
-      `${ring(cc / 100, '#94a3b8')}<div class="center"><span class="big-num">${cc}<small>%</small></span></div>`,
+      `${ring(cc / 100, 'var(--m-clouds)')}<div class="center"><span class="big-num">${cc}<small>%</small></span></div>`,
       `${name} (${cc}%)`, `Se espera que la nubosidad ${tr} en las próximas 6 horas (promedio ${Math.round(avg)}%).`));
   }
 
@@ -703,7 +704,7 @@ function renderDetails(p, w, air) {
       ? `Probabilidad de ${h.precipitation_probability[first]}% a las ${at(first)}. Máxima de ${pmax}% en las próximas 24 horas.`
       : `Sin precipitaciones significativas en las próximas 24 horas (máx. ${pmax}%).`;
     cards.push(card('Precipitaciones',
-      `${ring(Math.min(1, pmax / 100), '#38bdf8')}<div class="center"><span class="big-num">${imperial() ? sum.toFixed(2) : sum.toFixed(1).replace(/\.0$/, '')}<small>${precipUnit()}</small></span><span class="muted" style="font-size:10px">próximas 24 h</span></div>`,
+      `${ring(Math.min(1, pmax / 100), 'var(--m-precip)')}<div class="center"><span class="big-num">${imperial() ? sum.toFixed(2) : sum.toFixed(1).replace(/\.0$/, '')}<small>${precipUnit()}</small></span><span class="muted" style="font-size:10px">próximas 24 h</span></div>`,
       label, text));
   }
 
@@ -712,15 +713,15 @@ function renderDetails(p, w, air) {
     const dir = c.wind_direction_10m;
     const iG = argMax(next, (i) => h.wind_gusts_10m[i]);
     const compass = `<svg viewBox="0 0 120 120" aria-hidden="true" style="max-height:120px;width:120px;flex:none">
-      <circle cx="60" cy="60" r="46" fill="none" stroke="#2a3a5c" stroke-width="3"/>
-      ${[0, 90, 180, 270].map((a) => `<line x1="60" y1="10" x2="60" y2="18" stroke="#6b7a94" stroke-width="2" transform="rotate(${a} 60 60)"/>`).join('')}
-      <text x="60" y="8" fill="#a3b0c6" font-size="11" text-anchor="middle">N</text>
-      <text x="116" y="64" fill="#a3b0c6" font-size="11" text-anchor="middle">E</text>
-      <text x="60" y="120" fill="#a3b0c6" font-size="11" text-anchor="middle">S</text>
-      <text x="4" y="64" fill="#a3b0c6" font-size="11" text-anchor="middle">O</text>
+      <circle cx="60" cy="60" r="46" fill="none" style="stroke:var(--track)" stroke-width="3"/>
+      ${[0, 90, 180, 270].map((a) => `<line x1="60" y1="10" x2="60" y2="18" style="stroke:var(--faint)" stroke-width="2" transform="rotate(${a} 60 60)"/>`).join('')}
+      <text x="60" y="8" style="fill:var(--muted)" font-size="11" text-anchor="middle">N</text>
+      <text x="116" y="64" style="fill:var(--muted)" font-size="11" text-anchor="middle">E</text>
+      <text x="60" y="120" style="fill:var(--muted)" font-size="11" text-anchor="middle">S</text>
+      <text x="4" y="64" style="fill:var(--muted)" font-size="11" text-anchor="middle">O</text>
       <g transform="rotate(${dir + 180} 60 60)">
-        <path d="M60 24 L72 66 L60 58 L48 66 Z" fill="#4ade80"/>
-        <line x1="60" y1="58" x2="60" y2="92" stroke="#4ade80" stroke-width="4" stroke-linecap="round"/>
+        <path d="M60 24 L72 66 L60 58 L48 66 Z" style="fill:var(--m-air)"/>
+        <line x1="60" y1="58" x2="60" y2="92" style="stroke:var(--m-air)" stroke-width="4" stroke-linecap="round"/>
       </g></svg>`;
     cards.push(card('Viento',
       `<div class="row">${compass}<div class="side">
@@ -794,7 +795,7 @@ function renderDetails(p, w, air) {
     const tr = trendWord(c.pressure_msl - prev, 0.8);
     const fut = h.pressure_msl[Math.min(h.time.length - 1, ni + 6)];
     cards.push(card('Presión',
-      `<div style="width:100%">${spark(win.map((i) => h.pressure_msl[i]), win.indexOf(ni), '#a78bfa', 'sp-p')}
+      `<div style="width:100%">${spark(win.map((i) => h.pressure_msl[i]), win.indexOf(ni), 'var(--m-pressure)', 'sp-p')}
         <div class="big-num" style="margin-top:4px">${round(c.pressure_msl)}<small>hPa</small></div></div>`,
       tr, `${tr === 'Estable' ? 'Sin cambios importantes' : tr === 'En aumento' ? 'Subió' : 'Bajó'} en las últimas 3 horas. Se espera ${round(fut)} hPa dentro de 6 horas.`));
   }
@@ -815,12 +816,12 @@ function renderDetails(p, w, air) {
     const arcLen = Math.PI * 80;
     cards.push(card('Sol',
       `<svg viewBox="0 0 220 110" aria-hidden="true">
-        <line x1="10" y1="95" x2="210" y2="95" stroke="#3a4a6b" stroke-width="2"/>
-        <path d="M30 95 A80 80 0 0 1 190 95" fill="none" stroke="#3a4a6b" stroke-width="4" stroke-linecap="round"/>
-        <path d="M30 95 A80 80 0 0 1 190 95" fill="none" stroke="#facc15" stroke-width="4" stroke-linecap="round"
+        <line x1="10" y1="95" x2="210" y2="95" style="stroke:var(--track)" stroke-width="2"/>
+        <path d="M30 95 A80 80 0 0 1 190 95" fill="none" style="stroke:var(--track)" stroke-width="4" stroke-linecap="round"/>
+        <path d="M30 95 A80 80 0 0 1 190 95" fill="none" style="stroke:var(--sun)" stroke-width="4" stroke-linecap="round"
           stroke-dasharray="${arcLen * Math.max(0, Math.min(1, frac))} ${arcLen}"/>
-        <circle cx="30" cy="95" r="5" fill="#a3b0c6"/><circle cx="190" cy="95" r="5" fill="#a3b0c6"/>
-        ${isDay ? `<circle cx="${sx}" cy="${sy}" r="11" fill="#facc15" stroke="#fff" stroke-width="3"/>` : ''}
+        <circle cx="30" cy="95" r="5" style="fill:var(--muted)"/><circle cx="190" cy="95" r="5" style="fill:var(--muted)"/>
+        ${isDay ? `<circle cx="${sx}" cy="${sy}" r="11" style="fill:var(--sun);stroke:var(--ring)" stroke-width="3"/>` : ''}
       </svg>`,
       `☀↑ ${h12(rise, true)} &nbsp; ☀↓ ${h12(set, true)}`,
       `${Math.floor(light / 60)} h ${light % 60} min de luz solar. ${isDay ? `Faltan ${Math.floor((s - nowM) / 60)} h ${(s - nowM) % 60} min para el atardecer.` : 'Es de noche en esta ubicación.'}`));
@@ -1058,9 +1059,33 @@ function setupSearch() {
   input.addEventListener('blur', () => setTimeout(close, 150));
 }
 
+// ---------- Tema ----------
+
+const lightQuery = window.matchMedia?.('(prefers-color-scheme: light)');
+
+function applyTheme() {
+  const dark = state.theme === 'dark' || (state.theme === 'auto' && !lightQuery?.matches);
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#0b1730' : '#eef2f8');
+}
+
+function setupTheme() {
+  const sel = $('theme-select');
+  sel.value = state.theme;
+  sel.addEventListener('change', () => {
+    state.theme = sel.value;
+    store.set('theme', state.theme);
+    applyTheme();
+  });
+  // En modo automático sigue los cambios del sistema operativo.
+  lightQuery?.addEventListener?.('change', () => { if (state.theme === 'auto') applyTheme(); });
+  applyTheme();
+}
+
 // ---------- Inicio ----------
 
 function init() {
+  setupTheme();
   $('btn-units').textContent = tempUnit();
   setupSearch();
   renderMetricTabs();

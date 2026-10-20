@@ -4,7 +4,7 @@ Aplicación **multiplataforma** (PWA) para consultar el clima en tiempo real. Fu
 
 ## Funcionalidades
 
-Diseño oscuro tipo panel meteorológico, inspirado en los portales de clima más populares:
+Diseño tipo panel meteorológico, inspirado en los portales de clima más populares:
 
 - 📍 Clima de tu ubicación actual (geolocalización) y búsqueda de cualquier ciudad con autocompletado
 - ⭐ Barra de accesos rápidos con la temperatura actual de tus ciudades guardadas
@@ -14,6 +14,7 @@ Diseño oscuro tipo panel meteorológico, inspirado en los portales de clima má
 - 🧩 **Detalles del tiempo**: 12 tarjetas visuales (temperatura, sensación térmica, nubosidad, precipitaciones, brújula de viento, humedad, índice UV, calidad del aire, visibilidad, presión, sol y fase lunar)
 - 🔄 Actualización automática cada 10 minutos y al volver a la app
 - 🌡️ Cambio entre °C / °F
+- 🌓 Modo claro y oscuro con selector de tema (Auto sigue la configuración del sistema)
 - 📴 Funciona sin conexión mostrando los últimos datos descargados
 
 ## Servicios utilizados (gratuitos)
