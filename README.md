@@ -4,17 +4,17 @@ Aplicación **multiplataforma** (PWA) para consultar el clima en tiempo real. Fu
 
 ## Funcionalidades
 
-- 📍 Clima de tu ubicación actual (geolocalización)
-- 🔎 Búsqueda de cualquier ciudad del mundo con autocompletado
-- 🌡️ Condiciones actuales: temperatura, sensación térmica, humedad, viento y ráfagas, presión, nubosidad, precipitación, índice UV, amanecer y atardecer
-- 🌫️ Calidad del aire (índice europeo AQI y PM2.5)
-- 📈 Gráfico interactivo de temperatura por hora (24 h)
-- ⏱️ Pronóstico por hora (24 h) y de 7 días
+Diseño oscuro tipo panel meteorológico, inspirado en los portales de clima más populares:
+
+- 📍 Clima de tu ubicación actual (geolocalización) y búsqueda de cualquier ciudad con autocompletado
+- ⭐ Barra de accesos rápidos con la temperatura actual de tus ciudades guardadas
+- 🌡️ **El tiempo actual**: temperatura, sensación térmica, resumen del día, viento, humedad, visibilidad, presión y punto de rocío
+- 🗺️ **Mapa con radar de lluvia** animado
+- 📈 **Por hora**: gráfico interactivo con pestañas (información general, precipitación, viento, calidad del aire, humedad, nubosidad, presión y UV), selector de día (ayer + 7 días), amanecer/atardecer y franja de probabilidad de lluvia
+- 🧩 **Detalles del tiempo**: 12 tarjetas visuales (temperatura, sensación térmica, nubosidad, precipitaciones, brújula de viento, humedad, índice UV, calidad del aire, visibilidad, presión, sol y fase lunar)
 - 🔄 Actualización automática cada 10 minutos y al volver a la app
-- ⭐ Ciudades favoritas
 - 🌡️ Cambio entre °C / °F
 - 📴 Funciona sin conexión mostrando los últimos datos descargados
-- 🌗 Fondo que cambia según sea de día o de noche en el lugar consultado
 
 ## Servicios utilizados (gratuitos)
 
@@ -24,6 +24,10 @@ Aplicación **multiplataforma** (PWA) para consultar el clima en tiempo real. Fu
 | [Open-Meteo Geocoding API](https://open-meteo.com/en/docs/geocoding-api) | Búsqueda de ciudades |
 | [Open-Meteo Air Quality API](https://open-meteo.com/en/docs/air-quality-api) | Calidad del aire |
 | [Nominatim (OpenStreetMap)](https://nominatim.org/) | Nombre de la ciudad a partir de tu ubicación |
+| [RainViewer](https://www.rainviewer.com/api.html) | Radar de lluvia |
+| [OpenStreetMap](https://www.openstreetmap.org/) + [Leaflet](https://leafletjs.com/) | Mapa |
+
+Íconos meteorológicos animados de [Bas Milius](https://github.com/basmilius/weather-icons) (MIT).
 
 ## Uso
 
@@ -55,6 +59,7 @@ app.js                Lógica y consumo de las APIs
 sw.js                 Service worker (modo sin conexión)
 manifest.webmanifest  Manifiesto PWA
 icons/                Íconos de la app
+icons/wx/             Íconos meteorológicos (MIT, Bas Milius)
 ```
 
 ## Licencia

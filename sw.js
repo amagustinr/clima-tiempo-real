@@ -1,6 +1,6 @@
 // Service worker: cachea la interfaz para que la app abra sin conexión.
 // Las llamadas a las APIs del clima siempre van a la red (la app guarda el último resultado).
-const CACHE = 'clima-v2';
+const CACHE = 'clima-v3';
 const ASSETS = [
   './',
   'index.html',

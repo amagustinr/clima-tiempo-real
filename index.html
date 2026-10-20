@@ -4,78 +4,127 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Clima en Tiempo Real</title>
-  <meta name="description" content="Clima actual, pronóstico por hora y de 7 días usando Open-Meteo.">
-  <meta name="theme-color" content="#0f172a">
+  <meta name="description" content="Clima actual, pronóstico por hora y de 7 días, radar de lluvia y detalles del tiempo con datos de Open-Meteo.">
+  <meta name="theme-color" content="#0b1730">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header class="topbar">
-    <form id="search-form" class="search" autocomplete="off" role="search">
-      <input id="search-input" type="search" placeholder="Buscar ciudad…" aria-label="Buscar ciudad">
-      <ul id="search-results" class="results" hidden></ul>
-    </form>
-    <button id="btn-locate" class="icon-btn" title="Usar mi ubicación" aria-label="Usar mi ubicación">📍</button>
-    <button id="btn-units" class="icon-btn" title="Cambiar unidades" aria-label="Cambiar unidades">°C</button>
-    <button id="btn-fav" class="icon-btn" title="Guardar en favoritos" aria-label="Guardar en favoritos">☆</button>
+    <div class="topbar-inner">
+      <a class="brand" href="./" aria-label="Clima en Tiempo Real">
+        <img src="icons/icon.svg" alt="" width="28" height="28">
+        <span>Clima</span>
+      </a>
+      <form id="search-form" class="search" autocomplete="off" role="search">
+        <svg class="search-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+        <input id="search-input" type="search" placeholder="Buscar ubicación" aria-label="Buscar ubicación">
+        <ul id="search-results" class="results" hidden></ul>
+      </form>
+      <nav id="quick" class="quick" aria-label="Ubicaciones guardadas"></nav>
+      <div class="top-actions">
+        <button id="btn-locate" class="ghost-btn" title="Usar mi ubicación" aria-label="Usar mi ubicación">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="7"/></svg>
+        </button>
+        <button id="btn-units" class="ghost-btn units" title="Cambiar unidades">°C</button>
+      </div>
+    </div>
   </header>
 
-  <nav id="favorites" class="favorites" aria-label="Favoritos"></nav>
-
   <main id="app">
-    <section id="status" class="status">Cargando…</section>
+    <div class="loc-row">
+      <h1 id="place-name">—</h1>
+      <button id="btn-fav" class="round-btn" title="Guardar ubicación" aria-label="Guardar ubicación">☆</button>
+      <span id="status" class="status"></span>
+    </div>
 
-    <section id="current" class="card current" hidden>
-      <div class="place">
-        <h1 id="place-name">—</h1>
-        <p id="updated" class="muted"></p>
-      </div>
-      <div class="now">
-        <span id="now-icon" class="big-icon">☀️</span>
-        <span id="now-temp" class="big-temp">--°</span>
-      </div>
-      <p id="now-desc" class="desc">—</p>
-      <p id="now-range" class="muted"></p>
-      <dl class="grid">
-        <div><dt>Sensación</dt><dd id="d-feels">--</dd></div>
-        <div><dt>Humedad</dt><dd id="d-hum">--</dd></div>
-        <div><dt>Viento</dt><dd id="d-wind">--</dd></div>
-        <div><dt>Ráfagas</dt><dd id="d-gust">--</dd></div>
-        <div><dt>Presión</dt><dd id="d-press">--</dd></div>
-        <div><dt>Nubosidad</dt><dd id="d-cloud">--</dd></div>
-        <div><dt>Precipitación</dt><dd id="d-precip">--</dd></div>
-        <div><dt>Índice UV</dt><dd id="d-uv">--</dd></div>
-        <div><dt>Amanecer</dt><dd id="d-sunrise">--</dd></div>
-        <div><dt>Atardecer</dt><dd id="d-sunset">--</dd></div>
-        <div><dt>Calidad del aire</dt><dd id="d-aqi">--</dd></div>
-        <div><dt>PM2.5</dt><dd id="d-pm25">--</dd></div>
-      </dl>
+    <!-- Tiempo actual + radar -->
+    <section class="top-grid">
+      <article class="card now-card">
+        <header class="now-head">
+          <div>
+            <h2>El tiempo actual</h2>
+            <p id="now-time" class="muted small">--</p>
+          </div>
+        </header>
+        <div class="now-main">
+          <img id="now-icon" class="now-icon" src="icons/wx/not-available.svg" alt="">
+          <div class="now-temp"><span id="now-temp">--</span><sup id="now-unit">°C</sup></div>
+          <div class="now-desc">
+            <strong id="now-desc">—</strong>
+            <span class="muted">Sensación térmica <b id="now-feels">--</b></span>
+          </div>
+        </div>
+        <p id="now-summary" class="now-summary">—</p>
+        <dl class="now-stats">
+          <div><dt>Viento</dt><dd id="s-wind">--</dd></div>
+          <div><dt>Humedad</dt><dd id="s-hum">--</dd></div>
+          <div><dt>Visibilidad</dt><dd id="s-vis">--</dd></div>
+          <div><dt>Presión</dt><dd id="s-press">--</dd></div>
+          <div><dt>Punto de rocío</dt><dd id="s-dew">--</dd></div>
+        </dl>
+      </article>
+
+      <article class="card map-card">
+        <div id="map" class="map" aria-label="Mapa con radar de lluvia"></div>
+        <div class="map-bar">
+          <button id="radar-play" class="pill small-pill" aria-label="Reproducir radar">▶</button>
+          <span id="radar-time" class="muted small">Radar de lluvia</span>
+        </div>
+      </article>
     </section>
 
-    <section class="card" id="hourly-card" hidden>
-      <h2>Próximas 24 horas</h2>
-      <figure class="chart" id="temp-chart" aria-label="Gráfico de temperatura de las próximas 24 horas">
-        <svg id="chart-svg" role="img"></svg>
-        <div id="chart-tip" class="chart-tip" hidden></div>
-      </figure>
-      <div id="hourly" class="hourly"></div>
+    <!-- Por hora -->
+    <section class="section">
+      <div class="section-head">
+        <h2 class="section-title">Por hora</h2>
+        <div id="metric-tabs" class="pills" role="tablist" aria-label="Métrica del gráfico"></div>
+      </div>
+
+      <div id="days" class="days" role="tablist" aria-label="Día"></div>
+
+      <article class="card chart-card">
+        <header class="chart-head">
+          <h3 id="chart-title">Información general</h3>
+          <label id="feels-toggle" class="switch">
+            <input id="feels-input" type="checkbox">
+            <span class="track"><span class="thumb"></span></span>
+            Sensación térmica
+          </label>
+        </header>
+        <figure class="chart" id="chart">
+          <div id="chart-cols" class="chart-cols"></div>
+          <svg id="chart-svg" role="img"></svg>
+          <div id="chart-strip" class="chart-strip"></div>
+          <div id="chart-tip" class="chart-tip" hidden></div>
+        </figure>
+        <footer id="chart-legend" class="chart-legend muted small"></footer>
+      </article>
     </section>
 
-    <section class="card" id="daily-card" hidden>
-      <h2>Próximos 7 días</h2>
-      <ul id="daily" class="daily"></ul>
+    <!-- Detalles -->
+    <section class="section">
+      <div class="section-head">
+        <h2 class="section-title">Detalles del tiempo <span id="details-time" class="muted"></span></h2>
+      </div>
+      <div id="details" class="details"></div>
     </section>
   </main>
 
-  <footer class="footer muted">
+  <footer class="footer muted small">
     Datos: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> (CC BY 4.0) ·
+    Radar: <a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer</a> ·
+    Mapa: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> ·
+    Íconos: <a href="https://github.com/basmilius/weather-icons" target="_blank" rel="noopener">Bas Milius</a> (MIT) ·
     Se actualiza cada 10 min
   </footer>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script src="app.js" type="module"></script>
 </body>
 </html>
