@@ -167,6 +167,45 @@ main {
 .grid dt { font-size: 0.75rem; color: var(--muted); }
 .grid dd { margin: 4px 0 0; font-size: 1.05rem; font-weight: 600; }
 
+/* Gráfico de temperatura: superficie oscura propia para que la línea
+   mantenga contraste >= 3:1 tanto en el fondo de día como en el de noche. */
+.chart {
+  --line: #fde047;
+  --grid: rgba(255, 255, 255, 0.10);
+  position: relative;
+  margin: 0 0 14px;
+  padding: 8px 4px 4px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.55);
+  touch-action: pan-y;
+}
+
+.chart svg { display: block; width: 100%; height: 190px; overflow: visible; }
+.chart .grid-line { stroke: var(--grid); stroke-width: 1; }
+.chart .axis-label { fill: var(--muted); font-size: 11px; }
+.chart .line { fill: none; stroke: var(--line); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.chart .area { fill: url(#temp-area); }
+.chart .point-label { fill: var(--text); font-size: 12px; font-weight: 600; }
+.chart .dot { fill: var(--line); stroke: #0f172a; stroke-width: 2; }
+.chart .crosshair { stroke: rgba(255, 255, 255, 0.5); stroke-width: 1; stroke-dasharray: 3 3; }
+
+.chart-tip {
+  position: absolute;
+  top: 6px;
+  pointer-events: none;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: #0f172a;
+  border: 1px solid var(--border);
+  font-size: 0.8rem;
+  line-height: 1.35;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.chart-tip b { font-size: 0.95rem; }
+.chart-tip span { color: var(--muted); }
+
 .hourly {
   display: flex;
   gap: 10px;

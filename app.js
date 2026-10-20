@@ -56,6 +56,7 @@ const state = {
   favorites: store.get('favorites', []),
   timer: null,
   seq: 0,
+  chart: null,
 };
 
 // ---------- Utilidades ----------
@@ -210,6 +211,14 @@ function render(p, w, air) {
     </div>`;
   }).join('');
 
+  const idx = h.time.slice(start, start + 24).map((_, k) => start + k);
+  state.chart = idx.map((i, k) => ({
+    label: k === 0 ? 'Ahora' : hhmm(h.time[i]),
+    temp: h.temperature_2m[i],
+    rain: h.precipitation_probability[i],
+    ...wmo(h.weather_code[i], h.is_day[i]),
+  }));
+
   $('daily').innerHTML = d.time.map((t, i) => {
     const x = wmo(d.weather_code[i]);
     const pp = d.precipitation_probability_max[i];
@@ -223,8 +232,107 @@ function render(p, w, air) {
 
   setStatus('');
   for (const id of ['current', 'hourly-card', 'daily-card']) $(id).hidden = false;
+  renderChart();
   renderFavorites();
 }
+
+// Gráfico SVG de temperatura por hora (sin librerías). Se redibuja al cambiar el
+// ancho para que el texto mantenga su tamaño real en cualquier pantalla.
+function renderChart() {
+  const pts = state.chart;
+  const svg = $('chart-svg');
+  if (!pts?.length) return;
+
+  const W = svg.clientWidth || 600;
+  const H = 190;
+  const pad = { top: 26, right: 14, bottom: 24, left: 34 };
+  const iw = W - pad.left - pad.right;
+  const ih = H - pad.top - pad.bottom;
+
+  const temps = pts.map((p) => p.temp);
+  // Margen inferior extra para que la etiqueta del mínimo no choque con el eje de horas
+  const spread = Math.max(...temps) - Math.min(...temps);
+  const lo = Math.floor(Math.min(...temps) - Math.max(2, spread * 0.25));
+  const hi = Math.ceil(Math.max(...temps)) + 1;
+  const x = (i) => pad.left + (i / (pts.length - 1)) * iw;
+  const y = (t) => pad.top + (1 - (t - lo) / (hi - lo)) * ih;
+
+  // 3 o 4 marcas "redondas" en el eje Y
+  const step = Math.max(1, Math.ceil((hi - lo) / 3));
+  const ticks = [];
+  for (let t = Math.ceil(lo / step) * step; t <= hi; t += step) ticks.push(t);
+
+  const xEvery = W < 420 ? 6 : 3;
+  const line = pts.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(p.temp).toFixed(1)}`).join('');
+  const area = `${line}L${x(pts.length - 1).toFixed(1)},${pad.top + ih}L${pad.left},${pad.top + ih}Z`;
+
+  // Etiquetas directas solo en el máximo y el mínimo
+  const iMax = temps.indexOf(Math.max(...temps));
+  const iMin = temps.indexOf(Math.min(...temps));
+  const anchor = (i) => (i < 2 ? 'start' : i > pts.length - 3 ? 'end' : 'middle');
+  const mark = (i, dy) => `<circle class="dot" cx="${x(i)}" cy="${y(temps[i])}" r="4"/>
+    <text class="point-label" x="${x(i)}" y="${y(temps[i]) + dy}" text-anchor="${anchor(i)}">${Math.round(temps[i])}°</text>`;
+
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('aria-label',
+    `Temperatura próximas 24 horas: máxima ${Math.round(temps[iMax])}° a las ${pts[iMax].label}, mínima ${Math.round(temps[iMin])}° a las ${pts[iMin].label}`);
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="temp-area" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#fde047" stop-opacity="0.28"/>
+        <stop offset="1" stop-color="#fde047" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    ${ticks.map((t) => `<line class="grid-line" x1="${pad.left}" x2="${W - pad.right}" y1="${y(t)}" y2="${y(t)}"/>
+      <text class="axis-label" x="${pad.left - 6}" y="${y(t) + 4}" text-anchor="end">${t}°</text>`).join('')}
+    ${pts.map((p, i) => (i % xEvery === 0
+      ? `<text class="axis-label" x="${x(i)}" y="${H - 6}" text-anchor="${anchor(i)}">${p.label}</text>` : '')).join('')}
+    <path class="area" d="${area}"/>
+    <path class="line" d="${line}"/>
+    ${mark(iMax, -10)}
+    ${iMin !== iMax ? mark(iMin, 18) : ''}
+    <line class="crosshair" id="chart-cross" y1="${pad.top - 6}" y2="${pad.top + ih}" visibility="hidden"/>
+    <circle class="dot" id="chart-dot" r="5" visibility="hidden"/>
+    <rect id="chart-hit" x="${pad.left}" y="0" width="${iw}" height="${H}" fill="transparent"/>`;
+
+  const tip = $('chart-tip');
+  const cross = $('chart-cross');
+  const dot = $('chart-dot');
+  const hide = () => {
+    tip.hidden = true;
+    cross.setAttribute('visibility', 'hidden');
+    dot.setAttribute('visibility', 'hidden');
+  };
+  const show = (e) => {
+    const r = svg.getBoundingClientRect();
+    const px = ((e.clientX - r.left) / r.width) * W;
+    const i = Math.max(0, Math.min(pts.length - 1, Math.round(((px - pad.left) / iw) * (pts.length - 1))));
+    const p = pts[i];
+    cross.setAttribute('x1', x(i));
+    cross.setAttribute('x2', x(i));
+    cross.setAttribute('visibility', 'visible');
+    dot.setAttribute('cx', x(i));
+    dot.setAttribute('cy', y(p.temp));
+    dot.setAttribute('visibility', 'visible');
+    tip.innerHTML = `<span>${p.label}</span> ${p.icon}<br><b>${Math.round(p.temp)}${tempUnit()}</b> · ${p.desc}`
+      + (p.rain ? `<br><span>Prob. lluvia</span> ${p.rain}%` : '');
+    tip.hidden = false;
+    // Mantiene el tooltip dentro del gráfico
+    const half = tip.offsetWidth / 2;
+    const left = (x(i) / W) * r.width + 4;
+    tip.style.left = `${Math.max(half + 4, Math.min(r.width - half + 4, left))}px`;
+  };
+  const hit = $('chart-hit');
+  hit.addEventListener('pointermove', show);
+  hit.addEventListener('pointerdown', show);
+  hit.addEventListener('pointerleave', hide);
+}
+
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(renderChart, 150);
+});
 
 function renderFavorites() {
   $('btn-fav').textContent = state.favorites.some((f) => samePlace(f, state.place)) ? '★' : '☆';

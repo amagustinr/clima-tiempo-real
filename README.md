@@ -8,6 +8,7 @@ Aplicación **multiplataforma** (PWA) para consultar el clima en tiempo real. Fu
 - 🔎 Búsqueda de cualquier ciudad del mundo con autocompletado
 - 🌡️ Condiciones actuales: temperatura, sensación térmica, humedad, viento y ráfagas, presión, nubosidad, precipitación, índice UV, amanecer y atardecer
 - 🌫️ Calidad del aire (índice europeo AQI y PM2.5)
+- 📈 Gráfico interactivo de temperatura por hora (24 h)
 - ⏱️ Pronóstico por hora (24 h) y de 7 días
 - 🔄 Actualización automática cada 10 minutos y al volver a la app
 - ⭐ Ciudades favoritas
